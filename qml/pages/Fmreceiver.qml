@@ -42,6 +42,21 @@ Page
                 color: Theme.primaryColor
                 font.pixelSize: Theme.fontSizeExtraLarge
             }
+
+            Button
+            {
+                text: "debug"
+                anchors.horizontalCenter: parent.horizontalCenter
+                onClicked: fmtoh.debuggaa()
+            }
+
+            Button
+            {
+                text: "seek"
+                anchors.horizontalCenter: parent.horizontalCenter
+                onClicked: fmtoh.seek()
+            }
+
         }
     }
 

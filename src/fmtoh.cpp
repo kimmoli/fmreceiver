@@ -18,6 +18,7 @@ Fmtoh::Fmtoh(QObject *parent) :
 {
     emit versionChanged();
 
+    vddStateSet(false);
     vddStateSet(true);
 
     fmrx = new RDA5807MDriver(RDA5807M_ADDRESS);
@@ -43,6 +44,8 @@ Fmtoh::~Fmtoh()
  */
 void Fmtoh::vddStateSet(bool state)
 {
+    qDebug() << "TOH VDD:" << (state ? "on" : "off");
+
     int fd = open("/sys/devices/platform/reg-userspace-consumer.0/state", O_WRONLY);
 
     if (!(fd < 0))
@@ -59,3 +62,12 @@ void Fmtoh::vddStateSet(bool state)
 
 
 
+void Fmtoh::debuggaa()
+{
+    qDebug() << "signal level" << fmrx->RDA5807P_GetSigLvl(0);
+}
+
+void Fmtoh::seek()
+{
+    fmrx->fmSeek();
+}

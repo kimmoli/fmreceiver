@@ -24,6 +24,9 @@ public:
 
     QString readVersion();
 
+    Q_INVOKABLE void debuggaa();
+    Q_INVOKABLE void seek();
+
 signals:
     void versionChanged();
 
