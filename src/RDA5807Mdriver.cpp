@@ -42,7 +42,8 @@ void RDA5807MDriver::init()
 
 //5807M,5807FP,5807NN,5807NP
 uint8_t RDA5807N_initialization_reg[]={
-    0xC4, 0x01,
+//    0xC4, 0x01,
+    0xC0, 0x01,
     0x00, 0x00,
     0x04, 0x00,
     0xC3, 0xad,  //05h
@@ -126,7 +127,9 @@ unsigned char RDA5807MDriver::OperationRDAFM_2w(unsigned char operation, unsigne
         for (int i=0 ; i<numBytes ; i++)
         {
             buf[i] = *data++;
+            tmp.append(buf[i]);
         }
+        qDebug() << "write" << tmp.toHex();
         writeBytes(RDA5807MAddress, buf, numBytes);
     }
 
