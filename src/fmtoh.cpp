@@ -71,6 +71,7 @@ void Fmtoh::powerOn()
     fmrx->RDA5807P_SetFreq(m_frequency);
 
     emit frequencyChanged();
+    emit volumeChanged();
 }
 
 void Fmtoh::seek(QString dir)
@@ -103,6 +104,13 @@ QString Fmtoh::readFrequency()
     return QString("%1 MHz").arg(QString::number(((double)m_frequency)/100.0, 'f', 1));
 }
 
+void Fmtoh::setVolume(int vol)
+{
+    m_volume = vol;
+    fmrx->RDA5807P_SetVolumeLevel(m_volume);
+
+    emit volumeChanged();
+}
 
 
 

@@ -6,7 +6,7 @@ Page
 {
     id: page
 
-    property bool seeking: true
+    property bool seeking: false
     property string seekDirection: ""
 
     SilicaFlickable
@@ -39,61 +39,74 @@ Page
                 title: "FM Receiver"
             }
 
-            Label
-            {
-                id: freqLabel
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: fmtoh.frequency
-                color: Theme.primaryColor
-                font.pixelSize: 100
-                font.bold: true
-            }
-
             Row
             {
-                anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width
-
-                Button
+                Column
                 {
-                    text: "<<"
-                    width: parent.width/3
-                    onClicked:
+                    id: seekButtons
+                    width: 64
+                    IconButton
                     {
-                        if (!seeking)
+                        icon.source: "image://theme/icon-m-up"
+                        onClicked:
                         {
-                            seeking = true
-                            seekDirection = "down"
-                            seekTimer.start()
+                            if (!seeking)
+                            {
+                                seeking = true
+                                seekDirection = "up"
+                                seekTimer.start()
+                            }
+                            else
+                                seeking = false;
                         }
-                        else
-                            seeking = false;
                     }
-                }
+                    IconButton
+                    {
+                        icon.source: "image://theme/icon-m-down"
+                        onClicked:
+                        {
+                            if (!seeking)
+                            {
+                                seeking = true
+                                seekDirection = "down"
+                                seekTimer.start()
+                            }
+                            else
+                                seeking = false;
+                        }
+                    }
 
+                }
                 Label
                 {
-                    text: "seek"
+                    id: freqLabel
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - seekButtons.width
+                    horizontalAlignment: Text.AlignHCenter
+                    text: fmtoh.frequency
+                    color: Theme.primaryColor
+                    font.pixelSize: 100
+                    font.bold: true
                 }
 
-                Button
-                {
-                    text: ">>"
-                    width: parent.width/3
-                    onClicked:
-                    {
-                        if (!seeking)
-                        {
-                            seeking = true
-                            seekDirection = "up"
-                            seekTimer.start()
-                        }
-                        else
-                            seeking = false;
-                    }
-
-                }
             }
+
+            Slider
+            {
+                id: volumeSlider
+                label: "Volume"
+                value: fmtoh.volume
+                valueText: value
+                minimumValue: 0
+                maximumValue: 15
+                stepSize: 1
+                width: parent.width - 2*Theme.paddingLarge
+                anchors.horizontalCenter: parent.horizontalCenter
+                onValueChanged: fmtoh.volume = value
+            }
+
+
         }
     }
 
