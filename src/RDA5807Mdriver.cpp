@@ -16,20 +16,16 @@ void RDA5807MDriver::init()
 {
     qDebug() << "initialising";
 
-    freq = 9400;//10620;
     vol = 8;
     gChipID = 0;
 
     QThread::msleep(500);
 
     RDA5807P_Intialization();
-    RDA5807P_SetMute(false);
-    RDA5807P_SetVolumeLevel(15);
-    RDA5807P_SetFreq( freq );
+    RDA5807P_SetMute(true);
 
     qDebug() << "initialisation done";
 
-    // fmSeek();
 }
 
 /****************************************************/
@@ -82,25 +78,6 @@ uint8_t RDA5807N_initialization_reg[]={
 };
 
 
-void RDA5807MDriver::fmSeek()
-{
-  qDebug() << "Start seeking...";
-
-  freq = 8800;
-
-  do
-  {
-      qDebug() << "Seek Freq:" << ((float)freq)/100.0f << "MHz";
-      freq += 10;
-      if (freq > 10800)
-          return;
-  }
-  while(!RDA5807P_ValidStop(freq));
-
-  qDebug() << "Stable Freq:" << ((float)freq)/100.0f << "MHz";
-}
-
-
 
 //===========================================================
 // FM functions
@@ -115,7 +92,9 @@ unsigned char RDA5807MDriver::OperationRDAFM_2w(unsigned char operation, unsigne
     {
         tmp = readBytes(RDA5807MAddress, numBytes);
 
+#ifdef PRINTDEBUG
         qDebug() << "read" << tmp.toHex();
+#endif
 
         for (int i=0 ; i<numBytes ; i++)
         {
@@ -129,7 +108,11 @@ unsigned char RDA5807MDriver::OperationRDAFM_2w(unsigned char operation, unsigne
             buf[i] = *data++;
             tmp.append(buf[i]);
         }
+
+#ifdef PRINTDEBUG
         qDebug() << "write" << tmp.toHex();
+#endif
+
         writeBytes(RDA5807MAddress, buf, numBytes);
     }
 
@@ -229,9 +212,8 @@ bool RDA5807MDriver::RDA5807P_ValidStop(int freq)
     uint8_t i=0;
     uint16_t curChan;
 
-    //curChan=RDA5807P_FreqToChan(freq);
-    //03H 3:2 BAND??
-    //03H 15:6 ??CHAN
+    qDebug() << "Checking for frequency" << freq;
+
     if((freq >= 6500)&&(freq < 7600))
     {
       curChan = (freq - 6500)/10;

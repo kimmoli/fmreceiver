@@ -21,6 +21,9 @@ Fmtoh::Fmtoh(QObject *parent) :
     vddStateSet(false);
     vddStateSet(true);
 
+    m_volume = 10;
+    m_frequency = 9400;
+
     fmrx = new RDA5807MDriver(RDA5807M_ADDRESS);
 
 }
@@ -61,13 +64,45 @@ void Fmtoh::vddStateSet(bool state)
 }
 
 
-
-void Fmtoh::debuggaa()
+void Fmtoh::powerOn()
 {
-    qDebug() << "signal level" << fmrx->RDA5807P_GetSigLvl(0);
+    fmrx->RDA5807P_SetMute(false);
+    fmrx->RDA5807P_SetVolumeLevel(m_volume);
+    fmrx->RDA5807P_SetFreq(m_frequency);
+
+    emit frequencyChanged();
 }
 
-void Fmtoh::seek()
+void Fmtoh::seek(QString dir)
 {
-    fmrx->fmSeek();
+    if (dir == "down")
+    {
+        m_frequency -= FREQ_STEP;
+
+        if (m_frequency < FREQ_MIN)
+            m_frequency = FREQ_MAX;
+    }
+    else if (dir == "up")
+    {
+        m_frequency += FREQ_STEP;
+
+        if (m_frequency > FREQ_MAX)
+            m_frequency = FREQ_MIN;
+    }
+
+    emit frequencyChanged();
+
+    if (fmrx->RDA5807P_ValidStop(m_frequency))
+        emit stationFound();
+    else
+        emit stationNotFound();
 }
+
+QString Fmtoh::readFrequency()
+{
+    return QString("%1 MHz").arg(QString::number(((double)m_frequency)/100.0, 'f', 1));
+}
+
+
+
+

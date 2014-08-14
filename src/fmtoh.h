@@ -13,10 +13,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <QObject>
 #include "RDA5807Mdriver.h"
 
+
+#define FREQ_STEP 10
+#define FREQ_MIN 8750
+#define FREQ_MAX 10800
+
 class Fmtoh : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString version READ readVersion NOTIFY versionChanged())
+    Q_PROPERTY(QString frequency READ readFrequency NOTIFY frequencyChanged())
 
 public:
     explicit Fmtoh(QObject *parent = 0);
@@ -24,16 +30,24 @@ public:
 
     QString readVersion();
 
-    Q_INVOKABLE void debuggaa();
-    Q_INVOKABLE void seek();
+    QString readFrequency();
+
+    Q_INVOKABLE void seek(QString dir);
+    Q_INVOKABLE void powerOn();
 
 signals:
     void versionChanged();
+    void frequencyChanged();
+    void stationFound();
+    void stationNotFound();
 
 private:
     void vddStateSet(bool state);
 
     RDA5807MDriver* fmrx;
+
+    int m_frequency;
+    int m_volume;
 
 };
 

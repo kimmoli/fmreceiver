@@ -6,6 +6,9 @@ Page
 {
     id: page
 
+    property bool seeking: true
+    property string seekDirection: ""
+
     SilicaFlickable
     {
         anchors.fill: parent
@@ -33,36 +36,93 @@ Page
             spacing: Theme.paddingLarge
             PageHeader
             {
-                title: "Fmreceiver"
+                title: "FM Receiver"
             }
+
             Label
             {
-                x: Theme.paddingLarge
-                text: "Hello you"
+                id: freqLabel
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: fmtoh.frequency
                 color: Theme.primaryColor
-                font.pixelSize: Theme.fontSizeExtraLarge
+                font.pixelSize: 100
+                font.bold: true
             }
 
-            Button
+            Row
             {
-                text: "debug"
                 anchors.horizontalCenter: parent.horizontalCenter
-                onClicked: fmtoh.debuggaa()
-            }
+                width: parent.width
 
-            Button
-            {
-                text: "seek"
-                anchors.horizontalCenter: parent.horizontalCenter
-                onClicked: fmtoh.seek()
-            }
+                Button
+                {
+                    text: "<<"
+                    width: parent.width/3
+                    onClicked:
+                    {
+                        if (!seeking)
+                        {
+                            seeking = true
+                            seekDirection = "down"
+                            seekTimer.start()
+                        }
+                        else
+                            seeking = false;
+                    }
+                }
 
+                Label
+                {
+                    text: "seek"
+                }
+
+                Button
+                {
+                    text: ">>"
+                    width: parent.width/3
+                    onClicked:
+                    {
+                        if (!seeking)
+                        {
+                            seeking = true
+                            seekDirection = "up"
+                            seekTimer.start()
+                        }
+                        else
+                            seeking = false;
+                    }
+
+                }
+            }
         }
     }
 
     Fmtoh
     {
         id: fmtoh
+        Component.onCompleted: fmtoh.powerOn()
+
+        onStationFound:
+        {
+            seeking = false;
+        }
+        onStationNotFound:
+        {
+            if (seeking)
+                seekTimer.start()
+        }
+    }
+
+    Timer
+    {
+        id: seekTimer
+        running: false
+        interval: 10
+        repeat: false
+        onTriggered:
+        {
+            fmtoh.seek(seekDirection)
+        }
     }
 }
 
