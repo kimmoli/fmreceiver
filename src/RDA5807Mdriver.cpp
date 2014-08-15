@@ -19,6 +19,7 @@ void RDA5807MDriver::init()
     vol = 8;
     gChipID = 0;
     radioText = QByteArray();
+    stationName = QByteArray();
 
     QThread::msleep(500);
 
@@ -210,7 +211,7 @@ bool RDA5807MDriver::RDA5807P_ValidStop(int freq)
     uint8_t RDA5807P_reg_data[4]={0};
     uint8_t falseStation = 0;
     uint8_t i=0;
-    uint16_t curChan;
+    uint16_t curChan = 0;
 
     qDebug() << "Checking for frequency" << freq;
 
@@ -358,12 +359,12 @@ bool  RDA5807MDriver::RDA5807P_Intialization(void)
        return 1;
 }
 
-QByteArray RDA5807MDriver::RDA5807P_testRead()
+int RDA5807MDriver::RDA5807P_decodeRDS()
 {
     uint8_t RDA5807P_REGR[12]={0x0};
     uint8_t error_ind = 0;
 
-    int radioTextGroupsReceived = 0;
+    bool validGroupReceived = false;
     int timeout = 10;
 
     do
@@ -403,7 +404,7 @@ QByteArray RDA5807MDriver::RDA5807P_testRead()
             if (!radioTextPositions.contains(pos))
             {
                 radioTextPositions.append(pos);
-                radioTextGroupsReceived++;
+                validGroupReceived = true;
 
                 for (int n=0; n<4; n++)
                 {
@@ -411,16 +412,39 @@ QByteArray RDA5807MDriver::RDA5807P_testRead()
                     c.append(tmp.at(8+n));
                     radioText.replace(4*pos + n, 1, c );
                 }
-                qDebug() << radioText << tmp.toHex();
+                qDebug() << radioText;
             }
         }
 
-    } while ((radioTextGroupsReceived<1) && (--timeout)); // Repeat until one radiotext group is received
+        if (grouptypecode == 0) // stationName, PS
+        {
+            int pos = tmp.at(7) & 0x03;
+
+            if (!stationNamePositions.contains(pos))
+            {
+                stationNamePositions.append(pos);
+                validGroupReceived = true;
+
+                for (int n=0; n<2; n++)
+                {
+                    QByteArray c;
+                    c.append(tmp.at(10+n));
+                    stationName.replace(2*pos + n, 1, c );
+                }
+                qDebug() << stationName;
+            }
+
+        }
+
+    } while ((!validGroupReceived) && (--timeout)); // Repeat until one radiotext group is received
 
     if (timeout == 0)
+    {
         qDebug() << "timeout";
+        return 1;
+    }
+    return 0;
 
-    return radioText;
 }
 
 

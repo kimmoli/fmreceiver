@@ -10,6 +10,7 @@ Page
     property string seekDirection: ""
 
     property int rdsPacketCount: 0
+    property bool rdsFetching : false
 
     SilicaFlickable
     {
@@ -114,22 +115,30 @@ Page
             }
             Button
             {
+                id: rdsButton
                 text: "RDS"
                 anchors.horizontalCenter: parent.horizontalCenter
+                enabled: !rdsFetching
                 onClicked:
                 {
-                    fmtoh.clearRadioText()
-                    rdsPacketCount = 16
-                    rdsTimer.repeat = true
+                    fmtoh.clearRDS()
+                    rdsFetching = true;
+                    rdsPacketCount = 32
                     rdsTimer.start()
                 }
             }
 
             Label
             {
+                id: stationName
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: fmtoh.rdsStationName
+            }
+            Label
+            {
                 id: radioText
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: ""
+                text: fmtoh.rdsRadioText
             }
         }
     }
@@ -151,6 +160,19 @@ Page
         {
             if (seeking)
                 seekTimer.start()
+        }
+        onRdsCycleComplete:
+        {
+            if (rdsFetching)
+                rdsTimer.start()
+            if (--rdsPacketCount == 0)
+                rdsFetching = false;
+        }
+        onRdsAllReceived:
+        {
+            rdsFetching = false
+            rdsTimer.stop()
+            rdsPacketCount = 0
         }
     }
 
@@ -174,9 +196,7 @@ Page
         repeat: false
         onTriggered:
         {
-            radioText.text = fmtoh.getRadioText()
-            if (--rdsPacketCount == 0)
-                repeat = false
+            fmtoh.getRDS()
         }
     }
 

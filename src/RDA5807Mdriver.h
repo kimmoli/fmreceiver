@@ -26,10 +26,13 @@ public:
     void RDA5807P_SetVolumeLevel(uint8_t level);
     void RDA5807P_SetFreq( int16_t curf );
 
-    QByteArray RDA5807P_testRead();
+    int RDA5807P_decodeRDS();
 
     QByteArray radioText;
     QByteArray radioTextPositions;
+    QByteArray stationName;
+    QByteArray stationNamePositions;
+
 
 private:
     unsigned char RDA5807MAddress;

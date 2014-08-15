@@ -114,13 +114,34 @@ int Fmtoh::getSignalLevel()
     return fmrx->RDA5807P_GetSigLvl();
 }
 
-void Fmtoh::clearRadioText()
+void Fmtoh::clearRDS()
 {
     fmrx->radioText = QByteArray();
     fmrx->radioTextPositions = QByteArray();
+    fmrx->stationName = QByteArray();
+    fmrx->stationNamePositions = QByteArray();
+    m_rdsRadioText = QString();
+    m_rdsStationName = QString();
+
+    emit rdsRadioTextChanged();
+    emit rdsStationNameChanged();
 }
 
-QString Fmtoh::getRadioText()
+void Fmtoh::getRDS()
 {
-    return QString(fmrx->RDA5807P_testRead().simplified()).toLatin1();
+    if (fmrx->RDA5807P_decodeRDS())
+    {
+        emit rdsAllReceived();
+        return;
+    }
+
+    m_rdsRadioText = QString(fmrx->radioText.simplified()).toLatin1();
+    m_rdsStationName = QString(fmrx->stationName.simplified()).toLatin1();
+
+    emit rdsRadioTextChanged();
+    emit rdsStationNameChanged();
+
+    emit rdsCycleComplete();
 }
+
+

@@ -24,6 +24,9 @@ class Fmtoh : public QObject
     Q_PROPERTY(QString version READ readVersion NOTIFY versionChanged())
     Q_PROPERTY(QString frequency READ readFrequency NOTIFY frequencyChanged())
 
+    Q_PROPERTY(QString rdsRadioText READ readRadioText NOTIFY rdsRadioTextChanged())
+    Q_PROPERTY(QString rdsStationName READ readStationName NOTIFY rdsStationNameChanged())
+
 public:
     explicit Fmtoh(QObject *parent = 0);
     ~Fmtoh();
@@ -39,19 +42,29 @@ public:
     Q_INVOKABLE void powerOn();
     Q_INVOKABLE int getSignalLevel();
 
-    Q_INVOKABLE void clearRadioText();
-    Q_INVOKABLE QString getRadioText();
+    Q_INVOKABLE void clearRDS();
+    Q_INVOKABLE void getRDS();
+
+    QString readRadioText() { return m_rdsRadioText; }
+    QString readStationName() { return m_rdsStationName; }
 
 signals:
     void versionChanged();
     void frequencyChanged();
     void stationFound();
     void stationNotFound();
+    void rdsRadioTextChanged();
+    void rdsStationNameChanged();
+    void rdsCycleComplete();
+    void rdsAllReceived();
 
 private:
     void vddStateSet(bool state);
 
     RDA5807MDriver* fmrx;
+
+    QString m_rdsRadioText;
+    QString m_rdsStationName;
 
     int m_frequency;
     int m_volume;
