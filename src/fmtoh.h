@@ -23,7 +23,6 @@ class Fmtoh : public QObject
     Q_OBJECT
     Q_PROPERTY(QString version READ readVersion NOTIFY versionChanged())
     Q_PROPERTY(QString frequency READ readFrequency NOTIFY frequencyChanged())
-    Q_PROPERTY(int volume READ readVolume WRITE setVolume NOTIFY volumeChanged())
 
 public:
     explicit Fmtoh(QObject *parent = 0);
@@ -33,18 +32,21 @@ public:
 
     QString readFrequency();
 
-    int readVolume() { return m_volume; }
-    void setVolume(int vol);
+    Q_INVOKABLE int getVolume() { return m_volume; }
+    Q_INVOKABLE void setVolume(int vol);
 
     Q_INVOKABLE void seek(QString dir);
     Q_INVOKABLE void powerOn();
+    Q_INVOKABLE int getSignalLevel();
+
+    Q_INVOKABLE void clearRadioText();
+    Q_INVOKABLE QString getRadioText();
 
 signals:
     void versionChanged();
     void frequencyChanged();
     void stationFound();
     void stationNotFound();
-    void volumeChanged();
 
 private:
     void vddStateSet(bool state);
@@ -53,7 +55,6 @@ private:
 
     int m_frequency;
     int m_volume;
-
 };
 
 

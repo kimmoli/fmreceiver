@@ -18,6 +18,7 @@ void RDA5807MDriver::init()
 
     vol = 8;
     gChipID = 0;
+    radioText = QByteArray();
 
     QThread::msleep(500);
 
@@ -38,8 +39,7 @@ void RDA5807MDriver::init()
 
 //5807M,5807FP,5807NN,5807NP
 uint8_t RDA5807N_initialization_reg[]={
-//    0xC4, 0x01,
-    0xC0, 0x01,
+    0xC0, 0x0D, // Enable RDS and "new method" to improve receiver sensitivity
     0x00, 0x00,
     0x04, 0x00,
     0xC3, 0xad,  //05h
@@ -255,7 +255,7 @@ bool RDA5807MDriver::RDA5807P_ValidStop(int freq)
     //check FM_TURE
     if((RDA5807P_reg_data[2] &0x01)==0) falseStation=1;//0B 8  FM TRUE
 
-    if(freq==9600) falseStation=1;//
+    if(freq==9600) falseStation=1;// wut is this?
 
     if (falseStation==1)
       return 0;
@@ -271,7 +271,7 @@ bool RDA5807MDriver::RDA5807P_ValidStop(int freq)
  * @return uint8_t: the signal level(RSSI)
  * @retval
  */
-uint8_t RDA5807MDriver::RDA5807P_GetSigLvl( int16_t curf )
+uint8_t RDA5807MDriver::RDA5807P_GetSigLvl()
 {
     uint8_t RDA5807P_reg_data[4]={0};
 
@@ -357,3 +357,82 @@ bool  RDA5807MDriver::RDA5807P_Intialization(void)
     else
        return 1;
 }
+
+QByteArray RDA5807MDriver::RDA5807P_testRead()
+{
+    uint8_t RDA5807P_REGR[12]={0x0};
+    uint8_t error_ind = 0;
+
+    int radioTextGroupsReceived = 0;
+    int timeout = 10;
+
+    do
+    {
+        // Note! Following while loops will hang in case of bad RDS data.
+        // add some checks
+        // poll until no new group
+        while ((RDA5807P_REGR[0] & 0x80))
+            error_ind = OperationRDAFM_2w(READ, (uint8_t *)&RDA5807P_REGR[0], 2);
+
+        // poll until RDS new group ready bit set
+        while (!(RDA5807P_REGR[0] & 0x80))
+            error_ind = OperationRDAFM_2w(READ, (uint8_t *)&RDA5807P_REGR[0], 2);
+
+//        qDebug() << "new group ready";
+
+        error_ind = OperationRDAFM_2w(READ, (uint8_t *)&RDA5807P_REGR[0], 12);
+
+        int i;
+
+        QByteArray tmp;
+
+        for (i=0 ; i < 12 ; i++)
+            tmp.append(RDA5807P_REGR[i]);
+
+        int picode = (tmp.at(4) << 8) | tmp.at(5);
+        int grouptypecode = (tmp.at(6) & 0xF0) >> 4;
+
+        // TODO: add some error-bit checking
+
+        // qDebug() << "group" << grouptypecode << "0A" << tmp.left(2).toHex();
+
+        if (grouptypecode == 2) // radiotext
+        {
+            int pos = tmp.at(7) & 0x0f;
+
+            if (!radioTextPositions.contains(pos))
+            {
+                radioTextPositions.append(pos);
+                radioTextGroupsReceived++;
+
+                for (int n=0; n<4; n++)
+                {
+                    QByteArray c;
+                    c.append(tmp.at(8+n));
+                    radioText.replace(4*pos + n, 1, c );
+                }
+                qDebug() << radioText << tmp.toHex();
+            }
+        }
+
+    } while ((radioTextGroupsReceived<1) && (--timeout)); // Repeat until one radiotext group is received
+
+    if (timeout == 0)
+        qDebug() << "timeout";
+
+    return radioText;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

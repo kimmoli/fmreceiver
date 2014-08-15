@@ -20,11 +20,16 @@ public:
     ~RDA5807MDriver();
 
     void init();
-    uint8_t RDA5807P_GetSigLvl( int16_t curf );
+    uint8_t RDA5807P_GetSigLvl();
     bool RDA5807P_ValidStop(int freq);
     void RDA5807P_SetMute(bool mute);
     void RDA5807P_SetVolumeLevel(uint8_t level);
     void RDA5807P_SetFreq( int16_t curf );
+
+    QByteArray RDA5807P_testRead();
+
+    QByteArray radioText;
+    QByteArray radioTextPositions;
 
 private:
     unsigned char RDA5807MAddress;

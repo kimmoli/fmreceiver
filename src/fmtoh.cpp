@@ -22,7 +22,7 @@ Fmtoh::Fmtoh(QObject *parent) :
     vddStateSet(true);
 
     m_volume = 10;
-    m_frequency = 9400;
+    m_frequency = 9190;
 
     fmrx = new RDA5807MDriver(RDA5807M_ADDRESS);
 
@@ -71,7 +71,6 @@ void Fmtoh::powerOn()
     fmrx->RDA5807P_SetFreq(m_frequency);
 
     emit frequencyChanged();
-    emit volumeChanged();
 }
 
 void Fmtoh::seek(QString dir)
@@ -108,9 +107,20 @@ void Fmtoh::setVolume(int vol)
 {
     m_volume = vol;
     fmrx->RDA5807P_SetVolumeLevel(m_volume);
-
-    emit volumeChanged();
 }
 
+int Fmtoh::getSignalLevel()
+{
+    return fmrx->RDA5807P_GetSigLvl();
+}
 
+void Fmtoh::clearRadioText()
+{
+    fmrx->radioText = QByteArray();
+    fmrx->radioTextPositions = QByteArray();
+}
 
+QString Fmtoh::getRadioText()
+{
+    return QString(fmrx->RDA5807P_testRead().simplified()).toLatin1();
+}

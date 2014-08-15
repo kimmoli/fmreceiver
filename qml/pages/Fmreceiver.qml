@@ -9,6 +9,8 @@ Page
     property bool seeking: false
     property string seekDirection: ""
 
+    property int rdsPacketCount: 0
+
     SilicaFlickable
     {
         anchors.fill: parent
@@ -42,6 +44,17 @@ Page
             Row
             {
                 width: parent.width
+                Label
+                {
+                    id: freqLabel
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - seekButtons.width
+                    horizontalAlignment: Text.AlignHCenter
+                    text: fmtoh.frequency
+                    color: Theme.primaryColor
+                    font.pixelSize: 100
+                    font.bold: true
+                }
                 Column
                 {
                     id: seekButtons
@@ -76,18 +89,6 @@ Page
                                 seeking = false;
                         }
                     }
-
-                }
-                Label
-                {
-                    id: freqLabel
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width - seekButtons.width
-                    horizontalAlignment: Text.AlignHCenter
-                    text: fmtoh.frequency
-                    color: Theme.primaryColor
-                    font.pixelSize: 100
-                    font.bold: true
                 }
 
             }
@@ -96,24 +97,51 @@ Page
             {
                 id: volumeSlider
                 label: "Volume"
-                value: fmtoh.volume
+                value: 1
                 valueText: value
                 minimumValue: 0
                 maximumValue: 15
                 stepSize: 1
                 width: parent.width - 2*Theme.paddingLarge
                 anchors.horizontalCenter: parent.horizontalCenter
-                onValueChanged: fmtoh.volume = value
+                onValueChanged: fmtoh.setVolume(value)
+            }
+            Label
+            {
+                id: rssi
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: "0"
+            }
+            Button
+            {
+                text: "RDS"
+                anchors.horizontalCenter: parent.horizontalCenter
+                onClicked:
+                {
+                    fmtoh.clearRadioText()
+                    rdsPacketCount = 16
+                    rdsTimer.repeat = true
+                    rdsTimer.start()
+                }
             }
 
-
+            Label
+            {
+                id: radioText
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: ""
+            }
         }
     }
 
     Fmtoh
     {
         id: fmtoh
-        Component.onCompleted: fmtoh.powerOn()
+        Component.onCompleted:
+        {
+            fmtoh.powerOn()
+            volumeSlider.value = fmtoh.getVolume()
+        }
 
         onStationFound:
         {
@@ -137,6 +165,34 @@ Page
             fmtoh.seek(seekDirection)
         }
     }
+
+    Timer
+    {
+        id: rdsTimer
+        running: false
+        interval: 50
+        repeat: false
+        onTriggered:
+        {
+            radioText.text = fmtoh.getRadioText()
+            if (--rdsPacketCount == 0)
+                repeat = false
+        }
+    }
+
+    Timer
+    {
+        id: signalStrength
+        interval: 1000
+        repeat: true
+        running: true
+        onTriggered:
+        {
+            if (!seeking)
+                rssi.text = fmtoh.getSignalLevel()
+        }
+    }
+
 }
 
 
