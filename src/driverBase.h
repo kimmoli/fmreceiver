@@ -27,6 +27,7 @@ SOFTWARE.
 #include <QString>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <QDebug>
 #include <QObject>

@@ -172,7 +172,7 @@ void RDA5807MDriver::RDA5807P_SetMute(bool mute)
  ***********************************************/
 void RDA5807MDriver::RDA5807P_SetFreq(int16_t curFreq)
 {
-    uint16_t curChan;
+    uint16_t curChan = 0;
 
     qDebug() << "setting frequency to" << curFreq;
 
@@ -383,6 +383,9 @@ int RDA5807MDriver::RDA5807P_decodeRDS()
 
         error_ind = OperationRDAFM_2w(READ, (uint8_t *)&RDA5807P_REGR[0], 12);
 
+        if (error_ind > 0)
+            qDebug() << "error_ind" << error_ind;
+
         int i;
 
         QByteArray tmp;
@@ -390,7 +393,6 @@ int RDA5807MDriver::RDA5807P_decodeRDS()
         for (i=0 ; i < 12 ; i++)
             tmp.append(RDA5807P_REGR[i]);
 
-        int picode = (tmp.at(4) << 8) | tmp.at(5);
         int grouptypecode = (tmp.at(6) & 0xF0) >> 4;
 
         // TODO: add some error-bit checking
